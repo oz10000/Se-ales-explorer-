@@ -1,0 +1,11 @@
+{
+  "timeout_ms": 60000,
+  "espera_estabilidad_ms": 2000,
+  "max_despertar_s": 45,
+  "max_html_bytes": 10485760,
+  "max_captura_alto_px": 6000,
+  "headless": true,
+  "max_peticiones": 200,
+  "max_errores_js": 20,
+  "max_url_len": 250
+}
