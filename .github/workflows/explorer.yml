@@ -1,0 +1,89 @@
+name: DAPS Explorer (Fase 1 — exploración única)
+
+on:
+  workflow_dispatch:
+    inputs:
+      motivo:
+        description: 'Motivo de la ejecución (opcional, informativo)'
+        required: false
+        default: 'exploración estructural'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daps-explorer
+  cancel-in-progress: false
+
+jobs:
+  explorar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Cache navegadores Playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Instalar dependencias Python
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Instalar Chromium y dependencias del sistema
+        run: playwright install --with-deps chromium
+
+      - name: Ejecutar explorador
+        run: python explorer.py
+
+      - name: Subir reporte.txt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-txt
+          path: reporte.txt
+          if-no-files-found: warn
+
+      - name: Subir reporte.json
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-json
+          path: reporte.json
+          if-no-files-found: warn
+
+      - name: Subir log.txt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-txt
+          path: log.txt
+          if-no-files-found: warn
+
+      - name: Subir carpeta salida/
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salida-completa
+          path: salida/
+          if-no-files-found: warn
